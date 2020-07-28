@@ -9,16 +9,16 @@ class ProductController {
 
     }
 
-    create() {
-
+    create({view}) {
+        return view.render('admin/products/create')
     }
 
-    show() {
-
+    show({view}) {
+        return view.render('admin/products/show')
     }
 
-    edit() {
-
+    edit({view}) {
+        return view.render('admin/products/edit')
     }
 
     update() {
