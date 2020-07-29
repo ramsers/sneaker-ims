@@ -1,9 +1,22 @@
 'use strict'
 const Database = use('Database')
+const sanitize = require('sqlstring')
 
 class ProductController {
-    index({view}) {
-        return view.render('admin/products/all')
+    async index({view, request, response}) {
+        try {
+            let allProducts =  await Database.raw(`
+                SELECT * FROM products 
+            `)
+            allProducts = allProducts[0]
+            return view.render('admin/products/all', {allProducts})
+
+            } catch (error) {
+                response.redirect('back')
+                // `<h1 style ="color: red">There was an error</h1>
+                // <h3>${error.sqlMessage}</h3>
+                // `
+            }
     }
 
     async store({request, response}) {
@@ -11,34 +24,41 @@ class ProductController {
             const post = request.post()
            await Database.raw(`
                 INSERT INTO products (title, sku, material, description, brand_id, qty, size, user_id)
-                Values('${post.title}', '${post.sku}', '${post.material}', 
-                    '${post.description}', 1, ${post.qty}, 1, 1)
+                Values(${sanitize.escape(post.title)}, 
+                ${sanitize.escape(post.sku)}, 
+                ${sanitize.escape(post.material)}, 
+                ${sanitize.escape(post.description)}, 
+                ${parseInt(1)}, 
+                ${sanitize.escape(post.qty)}, 
+                ${sanitize.escape(post.size)}, 
+                ${parseInt(1)})
             `)
-            return `<h1 style ="color: green">Saved Successfully</h1>`
+            return response.redirect('/admin/products')
             } catch (error) {
-                return `<h1 style ="color: red">There was an error</h1>
-                <h3>${error.sqlMessage}</h3>
-                `
+                return response.redirect('/')
+                // `<h1 style ="color: red">There was an error</h1>
+                // <h3>${error.sqlMessage}</h3>
+                // `
             }
         }
 
-    create({view}) {
+    create({view, request, response}) {
         return view.render('admin/products/create')
     }
 
-    show({view}) {
+    show({view, request, response}) {
         return view.render('admin/products/show')
     }
 
-    edit({view}) {
+    edit({view, request, response}) {
         return view.render('admin/products/edit')
     }
 
-    update() {
+    update({request, response}) {
         
     }
 
-    delete() {
+    delete({request, response}) {
         
     }
 }
