@@ -6,7 +6,21 @@ class ProductController {
     async index({view, request, response}) {
         try {
             let allProducts =  await Database.raw(`
-                SELECT * FROM products 
+            SELECT products.id, 
+            products.title, products.sku,
+            products.material,
+            products.qty,
+            products.size,
+            products.user_id,
+            products.created_at,
+            brands.title as brand,
+            concat(users.f_name, " ", users.l_name ) as user
+            FROM products
+            INNER JOIN brands
+             ON products.brand_id = brands.id
+             INNER JOIN users
+             ON products.user_id = users.id
+             ORDER BY created_at ASC
             `)
             allProducts = allProducts[0]
             return view.render('admin/products/all', {allProducts})
