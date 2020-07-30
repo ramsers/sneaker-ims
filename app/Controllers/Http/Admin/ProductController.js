@@ -27,9 +27,6 @@ class ProductController {
 
             } catch (error) {
                 response.redirect('back')
-                // `<h1 style ="color: red">There was an error</h1>
-                // <h3>${error.sqlMessage}</h3>
-                // `
             }
     }
 
@@ -51,9 +48,6 @@ class ProductController {
             return response.redirect('/admin/products')
             } catch (error) {
                 return response.redirect('/')
-                // `<h1 style ="color: red">There was an error</h1>
-                // <h3>${error.sqlMessage}</h3>
-                // `
             }
         }
 
@@ -90,19 +84,65 @@ class ProductController {
 
             } catch (error) {
                 response.redirect('back')
-                // `<h1 style ="color: red">There was an error</h1>
-                // <h3>${error.sqlMessage}</h3>
-                // `
             }
-        return view.render('admin/products/show')
     }
 
-    edit({view, request, response}) {
-        return view.render('admin/products/edit')
+    async edit({view, request, response, params}) {
+
+        try {
+            let product =  await Database.raw(`
+            SELECT products.id, 
+            products.title, 
+            products.sku,
+            products.image_url,
+            products.material,
+            products.description,
+            products.qty,
+            products.size,
+            products.user_id,
+            products.created_at,
+            brands.title as brand,
+            concat(users.f_name, " ", users.l_name ) as user
+            FROM products
+            INNER JOIN brands
+             ON products.brand_id = brands.id
+             INNER JOIN users
+             ON products.user_id = users.id
+             WHERE products.id = ${params.id}
+             ORDER BY created_at ASC
+             LIMIT 1
+            `)
+            product = product[0][0]
+            return view.render('admin/products/edit', {product})
+
+            } catch (error) {
+                response.redirect('back')
+            }
     }
 
-    update({request, response}) {
-        
+    async update({request, response, params}) {
+        try {
+            const id = params.id
+            const post = request.post()
+           await Database.raw(`
+                
+                UPDATE products 
+                SET 
+                title = ${sanitize.escape(post.title)}, 
+                sku = ${sanitize.escape(post.sku)}, 
+                image_url = ${sanitize.escape(post.image_url)}, 
+                material = ${sanitize.escape(post.material)}, 
+                description = ${sanitize.escape(post.description)}, 
+                brand_id = ${parseInt(1)}, 
+                qty = ${sanitize.escape(post.qty)}, 
+                size = ${sanitize.escape(post.size)}, 
+                user_id = ${parseInt(1)}
+                WHERE id = ${id}
+            `)
+            return response.redirect(`/admin/products/${id}`)
+            } catch (error) {
+                return response.redirect('back')
+            }
     }
 
     delete({request, response}) {
