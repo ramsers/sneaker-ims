@@ -15,7 +15,7 @@ class BrandController {
             FROM brands
              INNER JOIN users
              ON brands.user_id = users.id
-             ORDER BY created_at ASC
+             ORDER BY brands.title ASC
             `)
             allBrands = allBrands[0]
             return view.render('/admin/brands/all', {allBrands})
@@ -50,23 +50,16 @@ class BrandController {
             let brand =  await Database.raw(`
             SELECT brands.id, 
             brands.title, 
-            brands.sku,
             brands.image_url,
-            brands.material,
             brands.description,
-            brands.qty,
-            brands.size,
             brands.user_id,
             brands.created_at,
-            brands.title as brand,
+            brands.updated_at,
             concat(users.f_name, " ", users.l_name ) as user
             FROM brands
-            INNER JOIN brands
-             ON brands.brand_id = brands.id
              INNER JOIN users
              ON brands.user_id = users.id
              WHERE brands.id = ${params.id}
-             ORDER BY created_at ASC
              LIMIT 1
             `)
             brand = brand[0][0]
@@ -83,19 +76,13 @@ class BrandController {
             let brand =  await Database.raw(`
             SELECT brands.id, 
             brands.title, 
-            brands.sku,
             brands.image_url,
-            brands.material,
             brands.description,
-            brands.qty,
-            brands.size,
+            concat(users.f_name, ' ', users.l_name ) as user,
             brands.user_id,
             brands.created_at,
-            brands.title as brand,
-            concat(users.f_name, " ", users.l_name ) as user
+            brands.updated_at
             FROM brands
-            INNER JOIN brands
-             ON brands.brand_id = brands.id
              INNER JOIN users
              ON brands.user_id = users.id
              WHERE brands.id = ${params.id}
@@ -114,19 +101,13 @@ class BrandController {
         try {
             const id = params.id
             const post = request.post()
-           await Database.raw(`
+            await Database.raw(`
                 
                 UPDATE brands 
                 SET 
                 title = ${sanitize.escape(post.title)}, 
-                sku = ${sanitize.escape(post.sku)}, 
                 image_url = ${sanitize.escape(post.image_url)}, 
-                material = ${sanitize.escape(post.material)}, 
-                description = ${sanitize.escape(post.description)}, 
-                brand_id = ${parseInt(1)}, 
-                qty = ${sanitize.escape(post.qty)}, 
-                size = ${sanitize.escape(post.size)}, 
-                user_id = ${parseInt(1)}
+                description = ${sanitize.escape(post.description)} 
                 WHERE id = ${id}
             `)
             return response.redirect(`/admin/brands/${id}`)

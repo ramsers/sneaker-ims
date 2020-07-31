@@ -40,7 +40,7 @@ class ProductController {
                 ${sanitize.escape(post.image_url)}, 
                 ${sanitize.escape(post.material)}, 
                 ${sanitize.escape(post.description)}, 
-                ${parseInt(1)}, 
+                ${sanitize.escape(post.brand_id)},
                 ${sanitize.escape(post.qty)}, 
                 ${sanitize.escape(post.size)}, 
                 ${parseInt(1)})
@@ -51,8 +51,14 @@ class ProductController {
             }
         }
 
-    create({view, request, response}) {
-        return view.render('admin/products/create')
+    async create({view, request, response}) {
+        let brands =  await Database.raw(`
+            SELECT * FROM brands
+             ORDER BY brands.title ASC
+            `)
+
+            brands = brands[0]
+        return view.render('admin/products/create', {brands})
     }
 
     async show({view, request, response, params}) {
@@ -100,6 +106,7 @@ class ProductController {
             products.qty,
             products.size,
             products.user_id,
+            products.brand_id,
             products.created_at,
             brands.title as brand,
             concat(users.f_name, " ", users.l_name ) as user
@@ -113,7 +120,16 @@ class ProductController {
              LIMIT 1
             `)
             product = product[0][0]
-            return view.render('admin/products/edit', {product})
+
+            let brands =  await Database.raw(`
+            SELECT * FROM brands
+             ORDER BY brands.title ASC
+            `)
+
+            brands = brands[0]
+
+
+            return view.render('admin/products/edit', {product, brands})
 
             } catch (error) {
                 response.redirect('back')
@@ -133,7 +149,7 @@ class ProductController {
                 image_url = ${sanitize.escape(post.image_url)}, 
                 material = ${sanitize.escape(post.material)}, 
                 description = ${sanitize.escape(post.description)}, 
-                brand_id = ${parseInt(1)}, 
+                brand_id = ${sanitize.escape(post.brand_id)}, 
                 qty = ${sanitize.escape(post.qty)}, 
                 size = ${sanitize.escape(post.size)}, 
                 user_id = ${parseInt(1)}
